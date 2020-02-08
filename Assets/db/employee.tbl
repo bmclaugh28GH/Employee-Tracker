@@ -1,0 +1,8 @@
+create table employee 
+   (id            integer not null auto_increment, 
+   first_name     varchar (100), 
+   last_name      integer, 
+   role_id        integer,
+   manager_id     integer, 
+   primary key (id)); 
+   

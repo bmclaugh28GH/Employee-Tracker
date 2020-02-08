@@ -1,0 +1,7 @@
+create table role 
+   (id            integer not null auto_increment, 
+   title          varchar (100), 
+   salary         integer, 
+   department_id  integer, 
+   primary key (id)); 
+   

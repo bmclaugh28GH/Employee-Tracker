@@ -1,0 +1,4 @@
+create table department
+   (id      integer not null auto_increment, 
+   name     varchar (100), 
+   primary_key (id)); 
