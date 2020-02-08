@@ -1,0 +1,36 @@
+insert into department (name) values ('Executive');
+select @executive_dept_id := last_insert_id();
+insert into role (title, salary, department_id) values ('CEO', 1000000, @executive_dept_id);
+select @ceo_role_id := last_insert_id();  
+insert into role (title, salary, department_id) values ('CFO', 800000, @executive_dept_id); 
+select @cfo_role := last_insert_id();
+insert into employee (first_name, last_name, role_id, manager_id) values ('Emily', 'R', @ceo_role_id, null);
+select @emily_id := last_insert_id();
+insert into employee (first_name, last_name, role_id, manager_id) values ('Bill', 'P', @cfo_role_id, @emily_id); 
+
+insert into department (name) values ('Sales');
+select @sales_dept_id := last_insert_id(); 
+insert into role (title, salary, department_id) values ('Sales Manager', 100000, @sales_dept_id);
+select @sales_manager_role := last_insert_id(); 
+insert into role (title, salary, department_id) values ('Salesperson', 80000, @sales_dept_id);
+select @salesperson_role := last_insert_id(); 
+insert into employee (first_name, last_name, role_id, manager_id) values ('Karl', 'H', @sales_manager_role, @emily_id);
+select @karl_id := last_insert_id(); 
+insert into employee (first_name, last_name, role_id, manager_id) values ('Ellen', 'M', @salesperson_role, @karl_id);
+
+insert into department (name) values ('Service');
+select @service_dept_id := last_insert_id(); 
+insert into role (title, salary, department_id) values ('Service Manager', 100000, @service_dept_id);
+select @svc_mgr_role := last_insert_id();
+insert into role (title, salary, department_id) values ('Service Rep', 80000, @service_dept_id);
+select @svc_rep_role := last_insert_id();
+insert into role (title, salary, department_id) values ('Mechanic', 60000, @service_dept_id);
+select @mech_role := last_insert_id();
+insert into employee (first_name, last_name, role_id, manager_id) values ('Eva', 'M', @svc_mgr_role, @emily_id); 
+select @eva_id := last_insert_id();
+insert into employee (first_name, last_name, role_id, manager_id) values ('Eva', 'M', @svc_rep_role, @eva_id); 
+insert into employee (first_name, last_name, role_id, manager_id) values ('Eva', 'M', @mech_role, @eva_id); 
+
+
+
+
