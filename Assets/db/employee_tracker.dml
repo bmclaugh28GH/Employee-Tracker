@@ -6,7 +6,9 @@ insert into role (title, salary, department_id) values ('CFO', 800000, @executiv
 select @cfo_role := last_insert_id();
 insert into employee (first_name, last_name, role_id, manager_id) values ('Emily', 'R', @ceo_role_id, null);
 select @emily_id := last_insert_id();
-insert into employee (first_name, last_name, role_id, manager_id) values ('Bill', 'P', @cfo_role_id, @emily_id); 
+insert into employee (first_name, last_name, role_id, manager_id) values ('Bill', 'P', @cfo_role, @emily_id); 
+
+delete from employee where first_name = 'Bill'
 
 insert into department (name) values ('Sales');
 select @sales_dept_id := last_insert_id(); 
@@ -28,8 +30,10 @@ insert into role (title, salary, department_id) values ('Mechanic', 60000, @serv
 select @mech_role := last_insert_id();
 insert into employee (first_name, last_name, role_id, manager_id) values ('Eva', 'M', @svc_mgr_role, @emily_id); 
 select @eva_id := last_insert_id();
-insert into employee (first_name, last_name, role_id, manager_id) values ('Eva', 'M', @svc_rep_role, @eva_id); 
-insert into employee (first_name, last_name, role_id, manager_id) values ('Eva', 'M', @mech_role, @eva_id); 
+insert into employee (first_name, last_name, role_id, manager_id) values ('Owen', 'M', @svc_rep_role, @eva_id); 
+insert into employee (first_name, last_name, role_id, manager_id) values ('Brian', 'M', @mech_role, @eva_id); 
+
+-- delete from employee where first_name = 'Eva'
 
 
 
