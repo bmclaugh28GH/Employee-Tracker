@@ -3,6 +3,7 @@
 // **********************************************
 var inquirer = require ("inquirer"); 
 var mysql = require ("mysql"); 
+const cTable = require('console.table');
 var express = require("express");
 var app = express();
 
@@ -20,7 +21,7 @@ connection.connect(function(err) {
    if (err) throw err;
    console.log("connected as id " + connection.threadId + "\n");
 
-   interact();  
+   interact();
 
 });
 
@@ -28,18 +29,126 @@ connection.connect(function(err) {
 // functions  
 // **********************************************
 
+function addRole(){
+
+}; // addRole
+
+function addDepartment(){
+   console.log("addDepartment") 
+
+   inquirer.
+   prompt([
+      {
+         type:"input",
+         message:"Enter a new department name",
+         name:"newDeptName"
+         }
+   ])
+   .then(function(response) {
+
+      connection.query("select * from department where lower (name) = lower (?)", [response.newDeptName], function(err, result) {
+      if (err) throw err;
+
+      if (result.name == response.newDeptName){
+         console.log ("This department already exists");
+         return; 
+      }
+
+      connection.query("set @rc := addDepartment (?)", [response.newDeptName], function(err, result) {
+      if (err) throw err; 
+      console.log ("INSERT successful"); 
+      });
+      }); 
+});
+
+
+//      connection.query("select * from department order by name", function(err, result) {
+//   if (err) throw err;
+
+} // addDepartment
+
+function addEmployee(){
+   console.log("addEmployee"); 
+} // addEmployee
+
+function viewRoles(){
+   console.log("viewRoles"); 
+   connection.query("select * from role order by title", function(err, result) {
+   if (err) throw err;
+   console.log("\n"); 
+   console.table(result);
+   });
+} // viewRoles
+
+function viewDepartments(){
+   console.log("viewDepartments"); 
+   connection.query("select * from department order by name", function(err, result) {
+   if (err) throw err;
+   console.log("\n"); 
+   console.table(result);
+   });
+} // viewDepartments 
+
+function viewEmployees(){
+   console.log("viewEmployees"); 
+   connection.query("select * from employee order by last_name, first_name", function(err, result) {
+   if (err) throw err;
+   console.log("\n"); 
+   console.table(result);
+   });
+} // viewEmployees 
+
+function updateEmployeeRole(){
+   console.log("updateEmployeeRole"); 
+} // updateEmployeeRole 
+
 function interact(){
 
-   inquirer
+   inquirer.
    prompt([
       {
          type:"list",
          message:"What do you want to do?",
          name:"action",
-         choices:["Add role", "Add department", "Add employee","View role", "View department","View employees","Update employee role"]
+         choices:["Add role", "Add department", "Add employee","View roles", "View departments","View employees","Update employee role", "QUIT"]
          }
    ])
+   .then(function(response) {
 
+      console.log (response);
+
+      switch (response.action){
+      case "Add role":
+         addRole();
+         break; 
+      case "Add department": 
+         addDepartment();
+         break; 
+      case "Add employee":
+         addEmployee();
+         break; 
+      case "View roles":
+         viewRoles(); 
+         break; 
+      case "View departments":
+         viewDepartments();
+         break; 
+      case "View employees":
+         viewEmployees ();
+         break; 
+      case "Update employee role":
+         updateEmployeeRole();
+         break; 
+      case "QUIT":
+         console.log("shutting down...");
+         connection.end();
+         return; 
+         break; 
+      }
+
+      //interact();
+
+   })
 /*      {
       type: "list",
       message: "'Upload' a profile image", 
@@ -74,6 +183,7 @@ function interact(){
 */
 
 
+
 } // interact 
 
 // **********************************************
@@ -84,7 +194,7 @@ function interact(){
 // init 
 // **********************************************
 
-app.listen(PORT, function() {
-  console.log("Server listening on: http://localhost:" + PORT);
-});
+//app.listen(PORT, function() {
+//  console.log("Server listening on: http://localhost:" + PORT);
+//});
 
