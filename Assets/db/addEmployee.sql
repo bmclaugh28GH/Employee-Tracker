@@ -1,5 +1,7 @@
 -- **********************************************
 -- **********************************************
+drop function if exists addEmployee; 
+
 delimiter //
 create function addEmployee 
    (iFName varchar(100),
@@ -22,5 +24,10 @@ select @myRc;
 select * from employee; 
 
 delete from employee where upper (first_name) = 'TEST';
+
+select * from employee e where exists (select '*' from employee m where manager_id = e.id); 
+
+
+
 */ 
 

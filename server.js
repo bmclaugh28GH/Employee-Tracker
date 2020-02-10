@@ -6,7 +6,6 @@ var mysql = require ("mysql");
 const cTable = require('console.table');
 var express = require("express");
 var app = express();
-
 var PORT = process.env.PORT || 8084;
 
 var connection = mysql.createConnection({
@@ -17,24 +16,79 @@ var connection = mysql.createConnection({
    database: "employee_tracker_db"
 });
 
-connection.connect(function(err) {
-   if (err) throw err;
-   console.log("connected as id " + connection.threadId + "\n");
-
-   interact();
-
-});
-
 // **********************************************
 // functions  
 // **********************************************
 
+// **********************************************
+// addRole 
+// **********************************************
+
 function addRole(){
 
-}; // addRole
+   console.log("addRole"); 
+
+   //connection.query("call getDepartments(0);", function(err, res) {
+   connection.query("select * from department", function(err, res) {
+      if (err) throw err; 
+
+      //console.log (res); 
+      //console.log (res[0]); 
+
+      var choiceArray = [];
+      for (var i = 0; i < res.length; i++) {
+         //console.log ("in loop, " + res[i].name); 
+         choiceArray.push(res[i].name);
+      }
+      //console.log (choiceArray);
+
+      inquirer.
+      prompt([
+         {
+            type:"input",
+            message:"Enter a new role title",
+            name:"newRoleTitle"
+         }, 
+         {
+            type:"input",
+            message:"What is the role's salary",
+            name:"newRoleSalary"
+         },
+         {
+            name: "newDeptChoice",
+            message:"What department will the role be in?", 
+            type: "rawlist",
+            choices: function() {
+               return choiceArray;
+               }
+         }
+      ])
+      .then(function(response) {
+
+         //console.log ("here i am. " + response.newDeptChoice); 
+
+         var newDeptID; 
+         for (i = 0; i < res.length; i++) {
+            if (res[i].name == response.newDeptChoice){
+               newDeptId = res[i].id;
+            }
+         }
+
+         connection.query("set @rc := addRole (?, ?, ?)",[response.newRoleTitle, response.newRoleSalary, newDeptId],function(err, result) {
+            if (err) throw err; 
+            console.log ("INSERT successful");
+            interact(); 
+         });
+      })    
+   })
+} // addRole
+
+// **********************************************
+// addDepartment 
+// **********************************************
 
 function addDepartment(){
-   console.log("addDepartment") 
+   console.log("addDepartment. starting") 
 
    inquirer.
    prompt([
@@ -42,65 +96,292 @@ function addDepartment(){
          type:"input",
          message:"Enter a new department name",
          name:"newDeptName"
-         }
+      }
    ])
    .then(function(response) {
 
       connection.query("select * from department where lower (name) = lower (?)", [response.newDeptName], function(err, result) {
-      if (err) throw err;
+         if (err) throw err;
 
-      if (result.name == response.newDeptName){
-         console.log ("This department already exists");
-         return; 
-      }
+         if (result.name == response.newDeptName){
+            console.log ("This department already exists");
+            return; 
+         }
 
-      connection.query("set @rc := addDepartment (?)", [response.newDeptName], function(err, result) {
-      if (err) throw err; 
-      console.log ("INSERT successful"); 
-      });
+         connection.query("set @rc := addDepartment (?)", [response.newDeptName], function(err, result) {
+            if (err) throw err; 
+            console.log ("INSERT successful"); 
+            interact(); 
+         });
       }); 
-});
-
-
-//      connection.query("select * from department order by name", function(err, result) {
-//   if (err) throw err;
+   });
 
 } // addDepartment
 
+// **********************************************
+// addEmployee 
+// **********************************************
+
 function addEmployee(){
    console.log("addEmployee"); 
+
+   //connection.query("call getDepartments(0);", function(err, res) {
+   connection.query("select * from employee", function(err, resE) {
+      if (err) throw err; 
+
+      connection.query("select * from role", function(err, resR) {
+         if (err) throw err; 
+
+         var roleArray = [];
+         for (var i = 0; i < resR.length; i++) {
+            //console.log ("in loop, " + resR[i].title); 
+            roleArray.push(resR[i].title);
+         }
+
+         var employeeArray = [];
+         for (var i = 0; i < resE.length; i++) {
+            //console.log ("in loop, " + resE[i].name); 
+            employeeArray.push(resE[i].first_name); // + ' ' + resE[i].last_name);
+         }
+
+         inquirer.
+         prompt([
+            {
+               type:"input",
+               message:"First name",
+               name:"newFName"
+            }, 
+            {
+               type:"input",
+               message:"Last name",
+               name:"newLName"
+            },
+            {
+               name: "newEmpRole",
+               message:"What role will the employee perform?", 
+               type: "rawlist",
+               choices: function() {
+                  return roleArray;
+                  }
+            },
+            {
+               name: "newEmpMgr",
+               message:"Who will manage the employee?", 
+               type: "rawlist",
+               choices: function() {
+                  return employeeArray;
+                  }
+            }
+         ])
+         .then(function(response) {
+
+            //console.log ("here i am. " + response); 
+
+            var newRoleID; 
+            for (i = 0; i < resR.length; i++) {
+               if (resR[i].title == response.newEmpRole){
+                  newRoleID = resR[i].id;
+               }
+            }
+
+            var newMgrID; 
+            for (i = 0; i < resE.length; i++) {
+               if (resE[i].first_name == response.newEmpMgr){
+                  newMgrID = resE[i].id;
+               }
+            }
+
+            connection.query("set @rc := addEmployee (?, ?, ?, ?)", 
+               [response.newFName, response.newLName, newRoleID, newMgrID], 
+               function(err, result) {
+
+               if (err) throw err; 
+               console.log ("INSERT successful"); 
+               interact();
+
+            });
+         })
+      })    
+   })
 } // addEmployee
+
+// **********************************************
+// **********************************************
 
 function viewRoles(){
    console.log("viewRoles"); 
    connection.query("select * from role order by title", function(err, result) {
-   if (err) throw err;
-   console.log("\n"); 
-   console.table(result);
+      if (err) throw err;
+      console.log("\n"); 
+      console.table(result);
+      interact();
    });
 } // viewRoles
+
+// **********************************************
+// **********************************************
 
 function viewDepartments(){
    console.log("viewDepartments"); 
    connection.query("select * from department order by name", function(err, result) {
-   if (err) throw err;
-   console.log("\n"); 
-   console.table(result);
+      if (err) throw err;
+      console.log("\n"); 
+      console.table(result);
+      interact();
    });
 } // viewDepartments 
+
+// **********************************************
+// **********************************************
 
 function viewEmployees(){
    console.log("viewEmployees"); 
    connection.query("select * from employee order by last_name, first_name", function(err, result) {
-   if (err) throw err;
-   console.log("\n"); 
-   console.table(result);
+      if (err) throw err;
+      console.log("\n"); 
+      console.table(result);
+      interact();
    });
 } // viewEmployees 
 
+// **********************************************
+// **********************************************
+
+function viewEmployeesByMgr(){
+   console.log("viewEmployeesByMgr");
+
+   var mgrList = [];
+   var mgrIDList = [];
+   connection.query("select * from employee e where exists (select '*' from employee m where manager_id = e.id) order by e.last_name, e.first_name", 
+   function(err, result) {
+      if (err) throw err;
+      for (i=0;i<result.length;i++){
+         mgrIDList.push(result[i].id); 
+         mgrList.push(result[i].first_name + ' ' + result[i].last_name);
+      }
+      console.log(mgrList);
+
+      inquirer.
+      prompt ([
+         {
+            name: "mgrName",
+            message:"Whose employees do you want to view?", 
+            type: "rawlist",
+            choices: function() {
+               return mgrList;
+            }
+         }
+      ])
+      .then(function(response) {
+
+         // convert name to ID
+         var mgrId;
+         for (i=0;i<mgrList.length;i++){
+            if (response.mgrName == mgrList[i]){
+               mgrId = mgrIDList[i]; 
+            }
+         }
+
+         connection.query("select * from employee where manager_id = ? order by last_name, first_name",[mgrId], 
+         function(err, result) {
+            if (err) throw err;
+
+            console.log("\n"); 
+            console.table(result);
+
+            interact();
+         })
+      })
+   });
+} // viewEmployeesByMgr 
+
+// **********************************************
+// **********************************************
+
 function updateEmployeeRole(){
    console.log("updateEmployeeRole"); 
+
+   var empList = []; 
+   var empIdList = []; 
+   var empRoleList = []; 
+   connection.query("select * from employee order by last_name, first_name", function(err, result) {
+      if (err) throw err;
+      //console.log(result);
+      for (i=0;i<result.length;i++){
+
+         //console.log(result[i].first_name); 
+         empList.push(result[i].first_name + ' ' + result[i].last_name); 
+         empIdList.push(result[i].id); 
+         empRoleList.push(result[i].role_id); 
+      }
+
+      inquirer.
+      prompt ([
+         {
+            name: "empToUpdate",
+            message:"Whose role do you want to update?", 
+            type: "rawlist",
+            choices: function() {
+               return empList;
+            }
+         }
+      ])
+      .then(function(response) {
+
+         var empId; 
+         var empRoleId; 
+         for (i=0;i<empList.length;i++){
+            if (empList[i]==response.empToUpdate){
+               empId=empIdList[i];
+               empRoleId = empRoleList[i];
+            }
+         }
+
+         roleList=[];
+         roleIdList=[];
+         connection.query("select * from role where id <> ? order by title", 
+         [empRoleId],
+         function(err, result) {
+            if (err) throw err;
+            for (i=0;i<result.length;i++){
+               roleList.push(result[i].title); 
+               roleIdList.push(result[i].id); 
+            }
+
+            console.log(roleList); 
+
+            inquirer.
+            prompt ([
+               {
+                  name: "newRole",
+                  message:"Pick a new role for the employee", 
+                  type: "rawlist",
+                  choices: function() {
+                     return roleList;
+                  }
+               }
+            ])
+            .then(function(response) {
+
+               console.log(response.newRole); 
+
+               connection.query("update employee set role_id = ? where id = ?", 
+                  [response.newRole, empId], 
+                  function(err, result) {
+
+                  if (err) throw err; 
+                  console.log ("UPDATE successful"); 
+                  interact();
+
+               })
+            })
+         })
+      })
+   })
 } // updateEmployeeRole 
+
+// **********************************************
+// **********************************************
 
 function interact(){
 
@@ -110,7 +391,16 @@ function interact(){
          type:"list",
          message:"What do you want to do?",
          name:"action",
-         choices:["Add role", "Add department", "Add employee","View roles", "View departments","View employees","Update employee role", "QUIT"]
+         choices:
+            ["Add role", 
+            "Add department", 
+            "Add employee",
+            "View roles", 
+            "View departments",
+            "View employees",
+            "View employees by manager",
+            "Update employee role", 
+            "QUIT"]
          }
    ])
    .then(function(response) {
@@ -136,6 +426,9 @@ function interact(){
       case "View employees":
          viewEmployees ();
          break; 
+      case "View employees by manager":
+         viewEmployeesByMgr ();
+         break; 
       case "Update employee role":
          updateEmployeeRole();
          break; 
@@ -146,44 +439,7 @@ function interact(){
          break; 
       }
 
-      //interact();
-
    })
-/*      {
-      type: "list",
-      message: "'Upload' a profile image", 
-      name: "profile_image", 
-      choices: ['u.jpg', 'ew.jpg', 'q.jpg', 'h.jpg']
-      },
-      // 
-      // ****************************************
-      // manager-specific
-      // ****************************************
-      {
-      type: "list",
-      message: "What is the manager's specialty?", 
-      name: "specialty", 
-      choices: ['Team Manager', 'QA Manager', 'Development Manager'],
-      when: function(answers) {
-      return answers.role=='Manager'; 
-      }
-      }, 
-*/
-
-/*      {
-         name: "choice",
-         type: "rawlist",
-         choices: function() {
-         var choiceArray = [];
-         for (var i = 0; i < results.length; i++) {
-            choiceArray.push(results[i].item_name);
-         }
-         return choiceArray;
-         },
-*/
-
-
-
 } // interact 
 
 // **********************************************
@@ -193,6 +449,14 @@ function interact(){
 // **********************************************
 // init 
 // **********************************************
+
+connection.connect(function(err) {
+   if (err) throw err;
+   console.log("connected as id " + connection.threadId + "\n");
+
+   interact();
+
+});
 
 //app.listen(PORT, function() {
 //  console.log("Server listening on: http://localhost:" + PORT);

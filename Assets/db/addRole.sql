@@ -20,6 +20,6 @@ set @myRc := addRole ('TEST', 1000000, 4);
 select @myRc;  
 select * from role; 
 
-delete from role where upper (title) = 'TEST';
+delete from role where upper (title) = 'role';
 */ 
 
