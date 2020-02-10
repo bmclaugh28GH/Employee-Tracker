@@ -125,11 +125,10 @@ function addDepartment(){
 function addEmployee(){
    console.log("addEmployee"); 
 
-   //connection.query("call getDepartments(0);", function(err, res) {
-   connection.query("select * from employee", function(err, resE) {
+   connection.query("select * from employee order by last_name, first_name", function(err, resE) {
       if (err) throw err; 
 
-      connection.query("select * from role", function(err, resR) {
+      connection.query("select * from role order by title", function(err, resR) {
          if (err) throw err; 
 
          var roleArray = [];
@@ -209,14 +208,54 @@ function addEmployee(){
 // **********************************************
 
 function deleteDepartment(){
-   return; 
+   console.log("deleteDepartment"); 
+
+   connection.query("select * from department order by name", function(err, result) {
+      if (err) throw err; 
+
+      var deptList=[];
+      var deptIdList=[];
+      for (i=0;i<result.length;i++){
+         deptList.push(result[i].title)
+         deptIdList.push(result[i].id); 
+      }
+
+      inquirer.
+      prompt([
+         {
+            name: "deleteDept",
+            message:"Which department do you want to delete?", 
+            type: "rawlist",
+            choices: function() {
+               return deptList;
+               }
+         }
+      ])
+      .then(function(response) {
+
+         var deptId;
+         for (i=0;i<deptList.length;i++){
+            if (response.deleteDept == deptList[i]){
+               deptId=deptIdList[i]; 
+            }
+         }
+         //console.log (roleId); 
+         var del = "delete from department where id = " + roleId; 
+         connection.query(del, function(err, result) {
+            if (err) throw err; 
+            console.log ("DELETE successful"); 
+            interact();
+
+         });
+      })
+   })
 } //deleteDepartment
 
 // **********************************************
 // **********************************************
 
 function deleteRole(){
-   console.log("deleteRolee"); 
+   console.log("deleteRole"); 
 
    connection.query("select * from role order by title", function(err, result) {
       if (err) throw err; 
@@ -399,6 +438,61 @@ function viewEmployeesByMgr(){
 // **********************************************
 // **********************************************
 
+function viewDeptBudgetUsed(){
+   console.log("viewEmployees"); 
+
+   connection.query("select * from department order by name", function(err, result) {
+      if (err) throw err; 
+
+      var deptList=[];
+      var deptIdList=[];
+      for (i=0;i<result.length;i++){
+         deptList.push(result[i].name)
+         deptIdList.push(result[i].id); 
+      }
+
+      inquirer.
+      prompt([
+         {
+            name: "viewDept",
+            message:"Which department's budget utilized do you want to view?", 
+            type: "rawlist",
+            choices: function() {
+               return deptList;
+               }
+         }
+      ])
+      .then(function(response) {
+
+         var deptId;
+         for (i=0;i<deptList.length;i++){
+            if (response.viewDept == deptList[i]){
+               deptId=deptIdList[i]; 
+            }
+         }
+
+         var qry = '';
+         qry += 'select d.name, sum(r.salary) as budget_used '; 
+         qry += 'from department d, role r '; 
+         qry += 'where r.department_id = d.id and d.id = ?';
+
+
+console.log (deptId, + '\n' + qry); 
+
+         connection.query(qry, [deptId], function(err, result) {
+            if (err) throw err; 
+
+            console.log("\n"); 
+            console.table(result);
+            interact();
+         });
+      })
+   })
+} // viewDeptBudgetUsed 
+
+// **********************************************
+// **********************************************
+
 function updateEmployeeRole(){
    console.log("updateEmployeeRole"); 
 
@@ -510,6 +604,7 @@ function interact(){
             "View departments",
             "View employees",
             "View employees by manager",
+            "View budget allocated by department",
             "QUIT"]
          }
    ])
@@ -548,6 +643,9 @@ function interact(){
       case "View employees by manager":
          viewEmployeesByMgr ();
          break; 
+      case "View budget allocated by department":
+         viewDeptBudgetUsed();
+         break;
       case "Update employee role":
          updateEmployeeRole();
          break; 
@@ -572,6 +670,15 @@ function interact(){
 connection.connect(function(err) {
    if (err) throw err;
    console.log("connected as id " + connection.threadId + "\n");
+
+/*
+   connection.query("call getEmployees (0)", 
+   function(err, result) {
+       if (err) throw err;
+
+      console.log (result); 
+   })
+*/
 
    interact();
 
