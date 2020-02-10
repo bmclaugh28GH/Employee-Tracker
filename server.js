@@ -208,6 +208,107 @@ function addEmployee(){
 // **********************************************
 // **********************************************
 
+function deleteDepartment(){
+   return; 
+} //deleteDepartment
+
+// **********************************************
+// **********************************************
+
+function deleteRole(){
+   console.log("deleteRolee"); 
+
+   connection.query("select * from role order by title", function(err, result) {
+      if (err) throw err; 
+
+      var roleList=[];
+      var roleIdList=[];
+      for (i=0;i<result.length;i++){
+         roleList.push(result[i].title)
+         roleIdList.push(result[i].id); 
+      }
+
+      inquirer.
+      prompt([
+         {
+            name: "deleteRole",
+            message:"Which role do you want to delete?", 
+            type: "rawlist",
+            choices: function() {
+               return roleList;
+               }
+         }
+      ])
+      .then(function(response) {
+
+         var roleId;
+         for (i=0;i<roleList.length;i++){
+            if (response.deleteRole == roleList[i]){
+               roleId=roleIdList[i]; 
+            }
+         }
+         //console.log (roleId); 
+         var del = "delete from role where id = " + roleId; 
+         connection.query(del, function(err, result) {
+            if (err) throw err; 
+            console.log ("DELETE successful"); 
+            interact();
+
+         });
+      })
+   })
+} //deleteRole
+
+// **********************************************
+// **********************************************
+
+function deleteEmployee(){
+   console.log("deleteEmployee"); 
+
+   connection.query("select * from employee order by last_name, first_name", function(err, result) {
+      if (err) throw err; 
+
+      var empList=[];
+      var empIdList=[];
+      for (i=0;i<result.length;i++){
+         empList.push(result[i].first_name + ' ' + result[i].last_name)
+         empIdList.push(result[i].id); 
+      }
+
+      inquirer.
+      prompt([
+         {
+            name: "deleteEmp",
+            message:"Who do you want to delete?", 
+            type: "rawlist",
+            choices: function() {
+               return empList;
+               }
+         }
+      ])
+      .then(function(response) {
+
+         var empId;
+         for (i=0;i<empList.length;i++){
+            if (response.deleteEmp == empList[i]){
+               empId=empIdList[i]; 
+            }
+         }
+         //console.log (empId); 
+         var del = "delete from employee where id = " + empId; 
+         connection.query(del, function(err, result) {
+            if (err) throw err; 
+            console.log ("DELETE successful"); 
+            interact();
+
+         });
+      })
+   })
+} //deleteEmployee
+
+// **********************************************
+// **********************************************
+
 function viewRoles(){
    console.log("viewRoles"); 
    connection.query("select * from role order by title", function(err, result) {
@@ -363,10 +464,16 @@ function updateEmployeeRole(){
             ])
             .then(function(response) {
 
+               var newRoleId; 
+               for (i=0;i<roleList.length;i++){
+                  if (roleList[i] == response.newRole){
+                     newRoleId = roleIdList[i];
+                  }
+               }
                console.log(response.newRole); 
 
                connection.query("update employee set role_id = ? where id = ?", 
-                  [response.newRole, empId], 
+                  [newRoleId, empId], 
                   function(err, result) {
 
                   if (err) throw err; 
@@ -395,11 +502,14 @@ function interact(){
             ["Add role", 
             "Add department", 
             "Add employee",
+            "Delete role", 
+            "Delete department", 
+            "Delete employee",
+            "Update employee role", 
             "View roles", 
             "View departments",
             "View employees",
             "View employees by manager",
-            "Update employee role", 
             "QUIT"]
          }
    ])
@@ -416,6 +526,15 @@ function interact(){
          break; 
       case "Add employee":
          addEmployee();
+         break; 
+      case "Delete role":
+         deleteRole();
+         break; 
+      case "Delete department": 
+         deleteDepartment();
+         break; 
+      case "Delete employee":
+         deleteEmployee();
          break; 
       case "View roles":
          viewRoles(); 
