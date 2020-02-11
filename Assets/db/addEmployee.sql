@@ -27,7 +27,7 @@ delete from employee where upper (first_name) = 'TEST';
 
 select * from employee e where exists (select '*' from employee m where manager_id = e.id); 
 
-
+select * from employee order by last_name, first_name
 
 */ 
 
